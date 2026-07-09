@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Квант и Платрум - AI-платформа обучения</title>
+    <style>
+:root {
+  --bg: #f4f6f2;
+  --surface: #ffffff;
+  --surface-strong: #eef4eb;
+  --ink: #1f251f;
+  --muted: #667064;
+  --line: #d8ded5;
+  --green: #287a52;
+  --green-dark: #18583a;
+  --coral: #c85c4a;
+  --amber: #b98222;
+  --shadow: 0 16px 48px rgba(31, 37, 31, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 15px;
+  letter-spacing: 0;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+.shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(320px, 390px) minmax(0, 1fr);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  border-right: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+}
+
+.brand {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.brand-mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--ink);
+  color: white;
+  font-weight: 800;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.brand p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.system-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.system-tab,
+.compact-button,
+.primary-button,
+.action-link,
+.phase-button {
+  min-height: 38px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.system-tab.is-active,
+.phase-button.is-active,
+.primary-button {
+  border-color: var(--green);
+  background: var(--green);
+  color: white;
+}
+
+.compact-button.is-complete {
+  border-color: var(--green);
+  color: var(--green-dark);
+  background: var(--surface-strong);
+}
+
+.search,
+.segment-search {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.search input,
+.segment-search input,
+.comment-editor textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  outline: none;
+}
+
+.search input,
+.segment-search input {
+  height: 42px;
+  padding: 0 12px;
+}
+
+.comment-editor textarea {
+  resize: vertical;
+  padding: 12px;
+  min-height: 96px;
+}
+
+.phase-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.phase-button {
+  min-height: 34px;
+  font-size: 13px;
+}
+
+.lesson-list {
+  overflow: auto;
+  display: grid;
+  gap: 8px;
+  padding-right: 2px;
+}
+
+.lesson-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  gap: 10px;
+  align-items: start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  text-align: left;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.lesson-row.is-active {
+  border-color: var(--green);
+  box-shadow: 0 0 0 2px rgba(40, 122, 82, 0.12);
+}
+
+.lesson-row.is-complete .lesson-number {
+  background: var(--green);
+  color: white;
+}
+
+.lesson-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-strong);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.lesson-row-title {
+  display: block;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.lesson-row-meta {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.lesson-status {
+  font-size: 12px;
+  color: var(--amber);
+}
+
+.workspace {
+  min-width: 0;
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+  align-content: start;
+}
+
+.player-band,
+.lesson-panel,
+.transcript-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+}
+
+.player-band {
+  padding: 16px;
+}
+
+.lesson-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.kicker {
+  margin: 0 0 6px;
+  color: var(--green);
+  font-weight: 700;
+}
+
+.lesson-heading h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.lesson-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-link[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.42;
+}
+
+.video-frame {
+  position: relative;
+  background: #111611;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.video-frame video,
+.youtube-frame iframe {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border: 0;
+}
+
+.empty-state {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  color: white;
+  padding: 24px;
+  text-align: center;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 18px;
+}
+
+.lesson-panel,
+.transcript-panel {
+  padding: 16px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.panel-header h3,
+.ai-box h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.lesson-panel p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.ai-box {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.ai-box p {
+  margin-top: 8px;
+}
+
+.counter {
+  min-width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--surface-strong);
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+.comment-editor {
+  display: grid;
+  gap: 10px;
+}
+
+.comments-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.comment-item {
+  border-left: 3px solid var(--coral);
+  padding: 8px 10px;
+  background: #fff8f6;
+  border-radius: 6px;
+}
+
+.comment-item time {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.transcript-panel {
+  box-shadow: none;
+}
+
+.transcript-segments {
+  display: grid;
+  gap: 8px;
+  max-height: 520px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.segment button {
+  height: 30px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--green-dark);
+  cursor: pointer;
+}
+
+.segment p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    max-height: none;
+  }
+
+  .lesson-list {
+    max-height: 420px;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .workspace,
+  .sidebar {
+    padding: 12px;
+  }
+
+  .lesson-heading {
+    display: grid;
+  }
+
+  .lesson-heading h2 {
+    font-size: 20px;
+  }
+
+  .lesson-actions {
+    justify-content: flex-start;
+  }
+
+  .segment {
+    grid-template-columns: 1fr;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">AI</div>
+          <div>
+            <h1>Квант и Платрум</h1>
+            <p>Навигация, транскрипты, AI-внедрение</p>
+          </div>
+        </div>
+
+        <div class="system-tabs" role="tablist" aria-label="Системы">
+          <button class="system-tab is-active" type="button" data-system="Квант">Квант</button>
+          <button class="system-tab" type="button" data-system="Платрум">Платрум</button>
+        </div>
+
+        <label class="search">
+          <span>Поиск</span>
+          <input id="searchInput" type="search" placeholder="Тема, термин, фраза">
+        </label>
+
+        <div id="phaseFilters" class="phase-filters" aria-label="Этапы курса"></div>
+        <div id="lessonList" class="lesson-list"></div>
+      </aside>
+
+      <main class="workspace">
+        <section class="player-band">
+          <div class="lesson-heading">
+            <div>
+              <p id="lessonKicker" class="kicker">Квант</p>
+              <h2 id="lessonTitle">Загрузка</h2>
+            </div>
+            <div class="lesson-actions">
+              <a id="transcriptLink" class="action-link" href="#" target="_blank" rel="noreferrer">Текст</a>
+              <a id="srtLink" class="action-link" href="#" target="_blank" rel="noreferrer">SRT</a>
+              <a id="sourceLink" class="action-link" href="#" target="_blank" rel="noreferrer">Источник</a>
+            </div>
+          </div>
+
+          <div class="video-frame">
+            <video id="videoPlayer" controls playsinline preload="metadata"></video>
+            <div id="youtubeFrame" class="youtube-frame" hidden></div>
+            <div id="emptyState" class="empty-state" hidden></div>
+          </div>
+        </section>
+
+        <section class="content-grid">
+          <article class="lesson-panel">
+            <div class="panel-header">
+              <h3>Описание</h3>
+              <button id="completeButton" class="compact-button" type="button">Отметить</button>
+            </div>
+            <p id="lessonSummary"></p>
+            <div class="ai-box">
+              <h3>AI-применение</h3>
+              <p id="lessonAi"></p>
+            </div>
+          </article>
+
+          <article class="lesson-panel">
+            <div class="panel-header">
+              <h3>Комментарии</h3>
+              <span id="commentCount" class="counter">0</span>
+            </div>
+            <div class="comment-editor">
+              <textarea id="commentInput" rows="4" placeholder="Заметка по внедрению, вопрос, идея для AI-агента"></textarea>
+              <button id="saveComment" class="primary-button" type="button">Сохранить</button>
+            </div>
+            <div id="commentsList" class="comments-list"></div>
+          </article>
+        </section>
+
+        <section class="transcript-panel">
+          <div class="panel-header">
+            <h3>Транскрипт</h3>
+            <label class="segment-search">
+              <span>Внутри урока</span>
+              <input id="segmentSearch" type="search" placeholder="Найти в тексте">
+            </label>
+          </div>
+          <div id="transcriptSegments" class="transcript-segments"></div>
+        </section>
+      </main>
+    </div>
+
+    <script id="embeddedLessons" type="application/json">{"generatedAt":"2026-07-09T19:47:46","systems":[{"id":"quant","name":"Квант","status":"ready","lessonCount":26,"description":"Управленческая система Квант: публичная сборка с навигацией, транскриптами и AI-применением без локальных видеофайлов."},{"id":"platrum","name":"Платрум","status":"ready","lessonCount":40,"description":"Управленческая система Платрум: YouTube-уроки, транскрипты и AI-внедрение."}],"phases":[{"id":1,"name":"Ориентация","goal":"Войти в логику курса и понять, какой образ компании собирается."},{"id":2,"name":"Мышление руководителя","goal":"Настроить точку зрения, внимание и способ внедрения изменений."},{"id":3,"name":"Операционная система","goal":"Разложить компанию на функции, результаты, схему и коммуникации."},{"id":4,"name":"Регламенты и ответственность","goal":"Сделать работу повторяемой, обучаемой и контролируемой."},{"id":5,"name":"Идеология и цель","goal":"Собрать смысловой контур: цель, путь к цели и ценности."},{"id":6,"name":"Контур управления","goal":"Подключить показатели, планы, совещания, финансы и стратегию."},{"id":7,"name":"Внедрение","goal":"Собрать всё в практический маршрут дальнейших действий."},{"id":101,"name":"Структура компании","goal":"Сначала собрать оргструктуру: должности, подчинение, редактирование, ошибки и лучшие практики."},{"id":102,"name":"База знаний и Академия","goal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний."},{"id":103,"name":"Метрики","goal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки."},{"id":104,"name":"Дашборды","goal":"Собрать обзорные панели, чтобы руководитель видел состояние системы без ручного поиска."},{"id":105,"name":"Финансы","goal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты."},{"id":106,"name":"Финплан","goal":"Завершить финансовый блок заявками, согласованием и настройками финансового планирования."},{"id":107,"name":"Дополнительно","goal":"Смотреть после управленческого маршрута как отдельный полезный материал."}],"lessons":[{"system":"Квант","id":"quant-01","number":1,"title":"Добро пожаловать","phaseId":1,"phase":"Ориентация","phaseGoal":"Войти в логику курса и понять, какой образ компании собирается.","durationSeconds":1202.521,"summary":"Стартовая рамка курса: что такое квантовая компания и зачем проходить материал последовательно.","aiUse":"Зафиксировать исходную карту знаний и создать AI-ассистента курса: цель, термины, вопросы, список будущих артефактов.","videoUrl":"https://yadi.sk/i/dgKSPuHppjqBDA","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%201%20%20%D0%94%D0%BE%D0%B1%D1%80%D0%BE%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D0%BE%D0%B2%D0%B0%D1%82%D1%8C.mp4","externalVideoUrl":"https://yadi.sk/i/dgKSPuHppjqBDA","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант добро пожаловать ориентация стартовая рамка курса: что такое квантовая компания и зачем проходить материал последовательно. зафиксировать исходную карту знаний и создать ai-ассистента курса: цель, термины, вопросы, список будущих артефактов."},{"system":"Квант","id":"quant-02","number":2,"title":"Точка зрения и многогранность реальности","phaseId":2,"phase":"Мышление руководителя","phaseGoal":"Настроить точку зрения, внимание и способ внедрения изменений.","durationSeconds":406.88,"summary":"Управление начинается с точки зрения и внимания: руководитель задаёт, что команда видит и считает важным.","aiUse":"Использовать ИИ как зеркало управленческой картины: собирать разные точки зрения, выявлять слепые зоны, формулировать фокус недели.","videoUrl":"https://yadi.sk/i/iZMGpG81PgWtTA","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%202.%20%D0%A2%D0%BE%D1%87%D0%BA%D0%B0%20%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%B8%20%D0%BC%D0%BD%D0%BE%D0%B3%D0%BE%D0%B3%D1%80%D0%B0%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C%20%D1%80%D0%B5%D0%B0%D0%BB%D1%8C%D0%BD%D0%BE%D1%81%D1%82%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/iZMGpG81PgWtTA","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант точка зрения и многогранность реальности мышление руководителя управление начинается с точки зрения и внимания: руководитель задаёт, что команда видит и считает важным. использовать ии как зеркало управленческой картины: собирать разные точки зрения, выявлять слепые зоны, формулировать фокус недели."},{"system":"Квант","id":"quant-03","number":3,"title":"Путь квантовой компании","phaseId":2,"phase":"Мышление руководителя","phaseGoal":"Настроить точку зрения, внимание и способ внедрения изменений.","durationSeconds":428.414,"summary":"Путь квантовой компании: компания должна регулярно выходить на новый уровень, а не просто тушить операционные пожары.","aiUse":"Собрать AI-карту текущего уровня компании, узких мест и возможных квантовых скачков.","videoUrl":"https://yadi.sk/i/wcnr35_r0bkQqw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%203.%20%D0%9F%D1%83%D1%82%D1%8C%20%D0%BA%D0%B2%D0%B0%D0%BD%D1%82%D0%BE%D0%B2%D0%BE%D0%B9%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/wcnr35_r0bkQqw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант путь квантовой компании мышление руководителя путь квантовой компании: компания должна регулярно выходить на новый уровень, а не просто тушить операционные пожары. собрать ai-карту текущего уровня компании, узких мест и возможных квантовых скачков."},{"system":"Квант","id":"quant-04","number":4,"title":"Как правильно внедрять изменения в компанию","phaseId":2,"phase":"Мышление руководителя","phaseGoal":"Настроить точку зрения, внимание и способ внедрения изменений.","durationSeconds":461.6,"summary":"Как внедрять изменения без хаоса: не вываливать всё сразу, а управлять вниманием и последовательностью внедрения.","aiUse":"Поручить ИИ готовить план внедрения изменений: этапы, риски, коммуникации, контрольные точки.","videoUrl":"https://yadi.sk/i/QAC8sRq8Wcu0Zw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%204.%20%D0%9A%D0%B0%D0%BA%20%D0%BF%D1%80%D0%B0%D0%B2%D0%B8%D0%BB%D1%8C%D0%BD%D0%BE%20%D0%B2%D0%BD%D0%B5%D0%B4%D1%80%D1%8F%D1%82%D1%8C%20%D0%B8%D0%B7%D0%BC%D0%B5%D0%BD%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%B2%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D1%8E.mp4","externalVideoUrl":"https://yadi.sk/i/QAC8sRq8Wcu0Zw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант как правильно внедрять изменения в компанию мышление руководителя как внедрять изменения без хаоса: не вываливать всё сразу, а управлять вниманием и последовательностью внедрения. поручить ии готовить план внедрения изменений: этапы, риски, коммуникации, контрольные точки."},{"system":"Квант","id":"quant-05","number":5,"title":"Закон созидательного внимания","phaseId":2,"phase":"Мышление руководителя","phaseGoal":"Настроить точку зрения, внимание и способ внедрения изменений.","durationSeconds":383.878,"summary":"Закон созидательного внимания: усиливается то, на что регулярно направляется внимание руководителя и команды.","aiUse":"Настроить AI-ритуалы внимания: ежедневные дайджесты, контроль фокуса, напоминания по ключевым объектам управления.","videoUrl":"https://yadi.sk/i/Jv4Kpcsq0kYaVw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%205.%20%D0%97%D0%B0%D0%BA%D0%BE%D0%BD%20%D1%81%D0%BE%D0%B7%D0%B8%D0%B4%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D0%B3%D0%BE%20%D0%B2%D0%BD%D0%B8%D0%BC%D0%B0%D0%BD%D0%B8%D1%8F.mp4","externalVideoUrl":"https://yadi.sk/i/Jv4Kpcsq0kYaVw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант закон созидательного внимания мышление руководителя закон созидательного внимания: усиливается то, на что регулярно направляется внимание руководителя и команды. настроить ai-ритуалы внимания: ежедневные дайджесты, контроль фокуса, напоминания по ключевым объектам управления."},{"system":"Квант","id":"quant-06","number":6,"title":"Разделение на функции","phaseId":3,"phase":"Операционная система","phaseGoal":"Разложить компанию на функции, результаты, схему и коммуникации.","durationSeconds":496.047891,"summary":"Разделение на функции как фундамент управляемости: компания описывается не должностями, а функциями и ответственностью.","aiUse":"С помощью ИИ разложить компанию на функции, владельцев, входы, выходы и зоны пересечения.","videoUrl":"https://yadi.sk/i/BvfygFb8qBk4fw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%206.%20%D0%A0%D0%B0%D0%B7%D0%B4%D0%B5%D0%BB%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%BD%D0%B0%20%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/BvfygFb8qBk4fw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант разделение на функции операционная система разделение на функции как фундамент управляемости: компания описывается не должностями, а функциями и ответственностью. с помощью ии разложить компанию на функции, владельцев, входы, выходы и зоны пересечения."},{"system":"Квант","id":"quant-07","number":7,"title":"Ожидаемый конечный результат (ОКР)","phaseId":3,"phase":"Операционная система","phaseGoal":"Разложить компанию на функции, результаты, схему и коммуникации.","durationSeconds":535.846893,"summary":"ОКР: ожидаемый конечный результат каждой функции и сотрудника, без которого невозможно нормально управлять.","aiUse":"Сгенерировать и проверить ОКР для ролей, функций и повторяющихся задач, чтобы убрать расплывчатые ожидания.","videoUrl":"https://yadi.sk/i/b8PUhXg1QSCbyg","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%207.%20%D0%9E%D0%B6%D0%B8%D0%B4%D0%B0%D0%B5%D0%BC%D1%8B%D0%B9%20%D0%BA%D0%BE%D0%BD%D0%B5%D1%87%D0%BD%D1%8B%D0%B9%20%D1%80%D0%B5%D0%B7%D1%83%D0%BB%D1%8C%D1%82%D0%B0%D1%82%20%28%D0%9E%D0%9A%D0%A0%29.mp4","externalVideoUrl":"https://yadi.sk/i/b8PUhXg1QSCbyg","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант ожидаемый конечный результат (окр) операционная система окр: ожидаемый конечный результат каждой функции и сотрудника, без которого невозможно нормально управлять. сгенерировать и проверить окр для ролей, функций и повторяющихся задач, чтобы убрать расплывчатые ожидания."},{"system":"Квант","id":"quant-08","number":8,"title":"Организационно-функциональная схема (ОФС) компании","phaseId":3,"phase":"Операционная система","phaseGoal":"Разложить компанию на функции, результаты, схему и коммуникации.","durationSeconds":313.980227,"summary":"ОФС: организационно-функциональная схема показывает функции, владельцев и устройство компании как системы.","aiUse":"Построить AI-черновик ОФС из штатки, процессов, задач и фактических коммуникаций.","videoUrl":"https://yadi.sk/i/mpc7VyHi-QitqQ","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%208.%20%D0%9E%D1%80%D0%B3%D0%B0%D0%BD%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%BE-%D1%84%D1%83%D0%BD%D0%BA%D1%86%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F%20%D1%81%D1%85%D0%B5%D0%BC%D0%B0%20%28%D0%9E%D0%A4%D0%A1%29%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/mpc7VyHi-QitqQ","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант организационно-функциональная схема (офс) компании операционная система офс: организационно-функциональная схема показывает функции, владельцев и устройство компании как системы. построить ai-черновик офс из штатки, процессов, задач и фактических коммуникаций."},{"system":"Квант","id":"quant-09","number":9,"title":"Система коммуникаций","phaseId":3,"phase":"Операционная система","phaseGoal":"Разложить компанию на функции, результаты, схему и коммуникации.","durationSeconds":1478.739592,"summary":"Система коммуникаций: как информация проходит по компании, кто что обрабатывает и где возникают потери.","aiUse":"Анализировать чаты/задачи через ИИ: классифицировать коммуникации, находить зависания, превращать вопросы в задачи.","videoUrl":"https://yadi.sk/i/lQ9sux4F55BZAA","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%209.%20%D0%A1%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BC%D1%83%D0%BD%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B9.mp4","externalVideoUrl":"https://yadi.sk/i/lQ9sux4F55BZAA","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант система коммуникаций операционная система система коммуникаций: как информация проходит по компании, кто что обрабатывает и где возникают потери. анализировать чаты/задачи через ии: классифицировать коммуникации, находить зависания, превращать вопросы в задачи."},{"system":"Квант","id":"quant-10","number":10,"title":"Повторяющиеся задачи","phaseId":3,"phase":"Операционная система","phaseGoal":"Разложить компанию на функции, результаты, схему и коммуникации.","durationSeconds":2493.730249,"summary":"Повторяющиеся задачи как один из главных инструментов стабильного управления и снятия хаоса.","aiUse":"Сделать библиотеку повторяющихся задач: ИИ помогает формулировать шаблоны, сроки, ответственных и критерии готовности.","videoUrl":"https://yadi.sk/i/HSvBtM49mJ7Ueg","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2010.%20%D0%9F%D0%BE%D0%B2%D1%82%D0%BE%D1%80%D1%8F%D1%8E%D1%89%D0%B8%D0%B5%D1%81%D1%8F%20%D0%B7%D0%B0%D0%B4%D0%B0%D1%87%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/HSvBtM49mJ7Ueg","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант повторяющиеся задачи операционная система повторяющиеся задачи как один из главных инструментов стабильного управления и снятия хаоса. сделать библиотеку повторяющихся задач: ии помогает формулировать шаблоны, сроки, ответственных и критерии готовности."},{"system":"Квант","id":"quant-11","number":11,"title":"Создание точки зрения у сотрудников","phaseId":3,"phase":"Операционная система","phaseGoal":"Разложить компанию на функции, результаты, схему и коммуникации.","durationSeconds":942.10322,"summary":"Создание правильной точки зрения у сотрудников, чтобы система работала не только через контроль сверху.","aiUse":"ИИ помогает готовить объяснения, обучающие сообщения и проверочные вопросы для формирования нужной управленческой картины.","videoUrl":"https://yadi.sk/d/2PYTKi07MixPKA","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2011.%20%D0%A1%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%20%D1%82%D0%BE%D1%87%D0%BA%D0%B8%20%D0%B7%D1%80%D0%B5%D0%BD%D0%B8%D1%8F%20%D1%83%20%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D0%BA%D0%BE%D0%B2.mp4","externalVideoUrl":"https://yadi.sk/d/2PYTKi07MixPKA","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант создание точки зрения у сотрудников операционная система создание правильной точки зрения у сотрудников, чтобы система работала не только через контроль сверху. ии помогает готовить объяснения, обучающие сообщения и проверочные вопросы для формирования нужной управленческой картины."},{"system":"Квант","id":"quant-12","number":12,"title":"Регламенты","phaseId":4,"phase":"Регламенты и ответственность","phaseGoal":"Сделать работу повторяемой, обучаемой и контролируемой.","durationSeconds":365.574966,"summary":"Регламенты как описание порядка деятельности, а не мёртвые документы ради документов.","aiUse":"ИИ превращает успешные действия и переписки в черновики регламентов, чек-листов и SOP.","videoUrl":"https://yadi.sk/i/AoF6xWnDPUDUVw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2012.%20%D0%A0%D0%B5%D0%B3%D0%BB%D0%B0%D0%BC%D0%B5%D0%BD%D1%82%D1%8B.mp4","externalVideoUrl":"https://yadi.sk/i/AoF6xWnDPUDUVw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант регламенты регламенты и ответственность регламенты как описание порядка деятельности, а не мёртвые документы ради документов. ии превращает успешные действия и переписки в черновики регламентов, чек-листов и sop."},{"system":"Квант","id":"quant-13","number":13,"title":"Что описывать в регламентах и кто должен делать","phaseId":4,"phase":"Регламенты и ответственность","phaseGoal":"Сделать работу повторяемой, обучаемой и контролируемой.","durationSeconds":625.32,"summary":"Что именно описывать в регламентах и кто должен это делать, чтобы регламенты были живыми.","aiUse":"ИИ помогает выбрать процессы для описания, выделить шаги, владельцев, исключения и точки контроля.","videoUrl":"https://yadi.sk/i/XNU4m_DHEEIJLw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2013.%20%D0%A7%D1%82%D0%BE%20%D0%BE%D0%BF%D0%B8%D1%81%D1%8B%D0%B2%D0%B0%D1%82%D1%8C%20%D0%B2%20%D1%80%D0%B5%D0%B3%D0%BB%D0%B0%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%85%20%D0%B8%20%D0%BA%D1%82%D0%BE%20%D0%B4%D0%BE%D0%BB%D0%B6%D0%B5%D0%BD%20%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C.mp4","externalVideoUrl":"https://yadi.sk/i/XNU4m_DHEEIJLw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант что описывать в регламентах и кто должен делать регламенты и ответственность что именно описывать в регламентах и кто должен это делать, чтобы регламенты были живыми. ии помогает выбрать процессы для описания, выделить шаги, владельцев, исключения и точки контроля."},{"system":"Квант","id":"quant-14","number":14,"title":"Контроль изучения регламентов","phaseId":4,"phase":"Регламенты и ответственность","phaseGoal":"Сделать работу повторяемой, обучаемой и контролируемой.","durationSeconds":413.245533,"summary":"Контроль изучения регламентов: без проверки регламенты не становятся поведением команды.","aiUse":"Создать AI-тесты, квизы и короткие проверки понимания по каждому регламенту.","videoUrl":"https://yadi.sk/d/ybb0o-l2jQu39w","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2014.%20%D0%9A%D0%BE%D0%BD%D1%82%D1%80%D0%BE%D0%BB%D1%8C%20%D0%B8%D0%B7%D1%83%D1%87%D0%B5%D0%BD%D0%B8%D1%8F%20%D1%80%D0%B5%D0%B3%D0%BB%D0%B0%D0%BC%D0%B5%D0%BD%D1%82%D0%BE%D0%B2.mp4","externalVideoUrl":"https://yadi.sk/d/ybb0o-l2jQu39w","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант контроль изучения регламентов регламенты и ответственность контроль изучения регламентов: без проверки регламенты не становятся поведением команды. создать ai-тесты, квизы и короткие проверки понимания по каждому регламенту."},{"system":"Квант","id":"quant-15","number":15,"title":"Примеры хороших и плохих регламентов","phaseId":4,"phase":"Регламенты и ответственность","phaseGoal":"Сделать работу повторяемой, обучаемой и контролируемой.","durationSeconds":588.532971,"summary":"Примеры регламентов: как отличать рабочее описание процесса от неиспользуемого текста.","aiUse":"Использовать ИИ как ревьюера регламентов: ясность, полнота, измеримость, отсутствие двусмысленности.","videoUrl":"https://yadi.sk/d/QPLFhpgXsQRX3Q","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2015.%20%D0%9F%D1%80%D0%B8%D0%BC%D0%B5%D1%80%D1%8B%20%D1%85%D0%BE%D1%80%D0%BE%D1%88%D0%B8%D1%85%20%D0%B8%20%D0%BF%D0%BB%D0%BE%D1%85%D0%B8%D1%85%20%D1%80%D0%B5%D0%B3%D0%BB%D0%B0%D0%BC%D0%B5%D0%BD%D1%82%D0%BE%D0%B2.mp4","externalVideoUrl":"https://yadi.sk/d/QPLFhpgXsQRX3Q","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант примеры хороших и плохих регламентов регламенты и ответственность примеры регламентов: как отличать рабочее описание процесса от неиспользуемого текста. использовать ии как ревьюера регламентов: ясность, полнота, измеримость, отсутствие двусмысленности."},{"system":"Квант","id":"quant-16","number":16,"title":"Как сделать так, чтобы сотрудники брали на себя ответственность","phaseId":4,"phase":"Регламенты и ответственность","phaseGoal":"Сделать работу повторяемой, обучаемой и контролируемой.","durationSeconds":468.694785,"summary":"Ответственность сотрудников появляется через ясность результата, права на решение и понятные последствия.","aiUse":"ИИ помогает строить матрицы ответственности, формулировать зоны владения и проводить разборы без размывания ответственности.","videoUrl":"https://yadi.sk/i/UunUe840BUjsOg","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2016.%20%D0%9A%D0%B0%D0%BA%20%D1%81%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C%20%D1%82%D0%B0%D0%BA%2C%20%D1%87%D1%82%D0%BE%D0%B1%D1%8B%20%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D0%BA%D0%B8%20%D0%B1%D1%80%D0%B0%D0%BB%D0%B8%20%D0%BD%D0%B0%20%D1%81%D0%B5%D0%B1%D1%8F%20%D0%BE%D1%82%D0%B2%D0%B5%D1%82%D1%81%D1%82%D0%B2%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D1%8C.mp4","externalVideoUrl":"https://yadi.sk/i/UunUe840BUjsOg","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант как сделать так, чтобы сотрудники брали на себя ответственность регламенты и ответственность ответственность сотрудников появляется через ясность результата, права на решение и понятные последствия. ии помогает строить матрицы ответственности, формулировать зоны владения и проводить разборы без размывания ответственности."},{"system":"Квант","id":"quant-17","number":17,"title":"Идеология","phaseId":5,"phase":"Идеология и цель","phaseGoal":"Собрать смысловой контур: цель, путь к цели и ценности.","durationSeconds":1231.563175,"summary":"Идеология компании как управленческий инструмент: общее понимание, зачем и как действует организация.","aiUse":"Собрать AI-базу идеологии: принципы, определения, объяснения для новичков, ответы на частые возражения.","videoUrl":"https://yadi.sk/i/EclBppMh69rOKg","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2017.%20%D0%98%D0%B4%D0%B5%D0%BE%D0%BB%D0%BE%D0%B3%D0%B8%D1%8F.mp4","externalVideoUrl":"https://yadi.sk/i/EclBppMh69rOKg","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант идеология идеология и цель идеология компании как управленческий инструмент: общее понимание, зачем и как действует организация. собрать ai-базу идеологии: принципы, определения, объяснения для новичков, ответы на частые возражения."},{"system":"Квант","id":"quant-18","number":18,"title":"Цель компании","phaseId":5,"phase":"Идеология и цель","phaseGoal":"Собрать смысловой контур: цель, путь к цели и ценности.","durationSeconds":3017.851066,"summary":"Цель компании как центральный смысловой и управленческий ориентир.","aiUse":"ИИ помогает уточнять цель, проверять её на конкретность, переводить в нарративы, метрики и решения.","videoUrl":"https://yadi.sk/i/0nbyeRT-v8yZig","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2018.%20%D0%A6%D0%B5%D0%BB%D1%8C%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/0nbyeRT-v8yZig","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант цель компании идеология и цель цель компании как центральный смысловой и управленческий ориентир. ии помогает уточнять цель, проверять её на конкретность, переводить в нарративы, метрики и решения."},{"system":"Квант","id":"quant-19","number":19,"title":"Путь к цели","phaseId":5,"phase":"Идеология и цель","phaseGoal":"Собрать смысловой контур: цель, путь к цели и ценности.","durationSeconds":305.086984,"summary":"Путь к цели: выбранный способ достижения цели и ограничения, которые защищают компанию от хаотичных решений.","aiUse":"Сделать AI-документ стратегии пути: принципы выбора, запреты, сценарии, критерии отклонения от пути.","videoUrl":"https://yadi.sk/i/v8YlUsKd3XbA0A","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2019.%20%D0%9F%D1%83%D1%82%D1%8C%20%D0%BA%20%D1%86%D0%B5%D0%BB%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/v8YlUsKd3XbA0A","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант путь к цели идеология и цель путь к цели: выбранный способ достижения цели и ограничения, которые защищают компанию от хаотичных решений. сделать ai-документ стратегии пути: принципы выбора, запреты, сценарии, критерии отклонения от пути."},{"system":"Квант","id":"quant-20","number":20,"title":"Ценности","phaseId":5,"phase":"Идеология и цель","phaseGoal":"Собрать смысловой контур: цель, путь к цели и ценности.","durationSeconds":576.481814,"summary":"Ценности как реальные правила выбора и поведения, а не декоративные лозунги.","aiUse":"ИИ помогает превращать ценности в поведенческие индикаторы, интервью-вопросы, критерии найма и оценки.","videoUrl":"https://yadi.sk/i/84aT_xH0yQbvhw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2020.%20%D0%A6%D0%B5%D0%BD%D0%BD%D0%BE%D1%81%D1%82%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/84aT_xH0yQbvhw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант ценности идеология и цель ценности как реальные правила выбора и поведения, а не декоративные лозунги. ии помогает превращать ценности в поведенческие индикаторы, интервью-вопросы, критерии найма и оценки."},{"system":"Квант","id":"quant-21","number":21,"title":"Показатели","phaseId":6,"phase":"Контур управления","phaseGoal":"Подключить показатели, планы, совещания, финансы и стратегию.","durationSeconds":1053.489342,"summary":"Показатели: управление через нормы, план-факт и постоянное улучшение состояния функции.","aiUse":"Настроить AI-аналитику показателей: объяснение отклонений, гипотезы причин, вопросы руководителю, план действий.","videoUrl":"https://yadi.sk/i/B7bd-3BHebEyaw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2021.%20%D0%9F%D0%BE%D0%BA%D0%B0%D0%B7%D0%B0%D1%82%D0%B5%D0%BB%D0%B8.mp4","externalVideoUrl":"https://yadi.sk/i/B7bd-3BHebEyaw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант показатели контур управления показатели: управление через нормы, план-факт и постоянное улучшение состояния функции. настроить ai-аналитику показателей: объяснение отклонений, гипотезы причин, вопросы руководителю, план действий."},{"system":"Квант","id":"quant-22","number":22,"title":"Еженедельное планирование","phaseId":6,"phase":"Контур управления","phaseGoal":"Подключить показатели, планы, совещания, финансы и стратегию.","durationSeconds":438.323084,"summary":"Еженедельное планирование связывает показатели с конкретными задачами, сроками и ответственными.","aiUse":"ИИ готовит недельные планы из целей, показателей и хвостов, а затем проверяет их на полноту и реалистичность.","videoUrl":"https://yadi.sk/i/bQdU5loEB_cdSg","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2022.%20%D0%95%D0%B6%D0%B5%D0%BD%D0%B5%D0%B4%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5%20%D0%BF%D0%BB%D0%B0%D0%BD%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5.mp4","externalVideoUrl":"https://yadi.sk/i/bQdU5loEB_cdSg","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант еженедельное планирование контур управления еженедельное планирование связывает показатели с конкретными задачами, сроками и ответственными. ии готовит недельные планы из целей, показателей и хвостов, а затем проверяет их на полноту и реалистичность."},{"system":"Квант","id":"quant-23","number":23,"title":"Координации и советы","phaseId":6,"phase":"Контур управления","phaseGoal":"Подключить показатели, планы, совещания, финансы и стратегию.","durationSeconds":424.76263,"summary":"Координации и советы: совещания должны иметь ОКР и приводить к решениям, а не просто обсуждениям.","aiUse":"ИИ помогает готовить повестку, фиксировать решения, выделять задачи, протоколировать и контролировать follow-up.","videoUrl":"https://yadi.sk/i/j2HiJjHwh-5H0A","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2023.%20%D0%9A%D0%BE%D0%BE%D1%80%D0%B4%D0%B8%D0%BD%D0%B0%D1%86%D0%B8%D0%B8%20%D0%B8%20%D1%81%D0%BE%D0%B2%D0%B5%D1%82%D1%8B.mp4","externalVideoUrl":"https://yadi.sk/i/j2HiJjHwh-5H0A","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант координации и советы контур управления координации и советы: совещания должны иметь окр и приводить к решениям, а не просто обсуждениям. ии помогает готовить повестку, фиксировать решения, выделять задачи, протоколировать и контролировать follow-up."},{"system":"Квант","id":"quant-24","number":24,"title":"Система учёта финансов и финансового планирования","phaseId":6,"phase":"Контур управления","phaseGoal":"Подключить показатели, планы, совещания, финансы и стратегию.","durationSeconds":528.044989,"summary":"Финансовый учёт и финансовое планирование как отдельный контур управляемости компании.","aiUse":"ИИ помогает собирать финансовые вопросы, объяснять план-факт, готовить сценарии и подсвечивать управленческие риски.","videoUrl":"https://yadi.sk/d/PxSV6cY7JVBXUw","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2024.%20%D0%A1%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D0%B0%20%D1%83%D1%87%D1%91%D1%82%D0%B0%20%D1%84%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D0%BE%D0%B2%20%D0%B8%20%D1%84%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D0%BE%D0%B2%D0%BE%D0%B3%D0%BE%20%D0%BF%D0%BB%D0%B0%D0%BD%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.mp4","externalVideoUrl":"https://yadi.sk/d/PxSV6cY7JVBXUw","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант система учёта финансов и финансового планирования контур управления финансовый учёт и финансовое планирование как отдельный контур управляемости компании. ии помогает собирать финансовые вопросы, объяснять план-факт, готовить сценарии и подсвечивать управленческие риски."},{"system":"Квант","id":"quant-25","number":25,"title":"Стратегическое планирование","phaseId":6,"phase":"Контур управления","phaseGoal":"Подключить показатели, планы, совещания, финансы и стратегию.","durationSeconds":252.215147,"summary":"Стратегическое планирование: путь от идеи предпринимателя к стратегическому плану, программам и еженедельным задачам.","aiUse":"ИИ помогает превращать стратегические идеи в план, проекты, зависимости, риски и задачи по неделям.","videoUrl":"https://yadi.sk/i/HGzNRzR4pE6y-A","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2025.%20%D0%A1%D1%82%D1%80%D0%B0%D1%82%D0%B5%D0%B3%D0%B8%D1%87%D0%B5%D1%81%D0%BA%D0%BE%D0%B5%20%D0%BF%D0%BB%D0%B0%D0%BD%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5.mp4","externalVideoUrl":"https://yadi.sk/i/HGzNRzR4pE6y-A","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант стратегическое планирование контур управления стратегическое планирование: путь от идеи предпринимателя к стратегическому плану, программам и еженедельным задачам. ии помогает превращать стратегические идеи в план, проекты, зависимости, риски и задачи по неделям."},{"system":"Квант","id":"quant-26","number":26,"title":"Что дальше","phaseId":7,"phase":"Внедрение","phaseGoal":"Собрать всё в практический маршрут дальнейших действий.","durationSeconds":2141.181678,"summary":"Что делать дальше: итоговая картина квантовой компании и маршрут продолжения внедрения.","aiUse":"Собрать AI-дорожную карту внедрения: что уже понятно, что описать, какие агенты нужны, какие метрики контролировать.","videoUrl":"https://yadi.sk/i/Hb5Q0hKEGZzWqA","localVideoUrl":"/%5BSW.BAND%5D%20%5B%D0%90%D0%BB%D0%B5%D0%BA%D1%81%D0%B5%D0%B9%20%D0%9C%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%BE%D0%B2%5D%20%D0%98%D0%BC%D0%BF%D1%83%D0%BB%D1%8C%D1%81.%20%D0%94%D0%BB%D1%8F%20%D0%B2%D0%BB%D0%B0%D0%B4%D0%B5%D0%BB%D1%8C%D1%86%D0%B5%D0%B2%20%D0%B8%20%D1%80%D1%83%D0%BA%D0%BE%D0%B2%D0%BE%D0%B4%D0%B8%D1%82%D0%B5%D0%BB%D0%B5%D0%B9%20%282023%29/%5BSW.BAND%5D%2026.%20%D0%A7%D1%82%D0%BE%20%D0%B4%D0%B0%D0%BB%D1%8C%D1%88%D0%B5.mp4","externalVideoUrl":"https://yadi.sk/i/Hb5Q0hKEGZzWqA","videoHost":"yandex-disk","transcriptUrl":null,"srtUrl":null,"sourceKind":"external-video","status":"ready-public-transcript","segments":[],"searchText":"квант что дальше внедрение что делать дальше: итоговая картина квантовой компании и маршрут продолжения внедрения. собрать ai-дорожную карту внедрения: что уже понятно, что описать, какие агенты нужны, какие метрики контролировать."},{"system":"Платрум","id":"platrum-40","number":1,"sourceNumber":40,"title":"1  Зачем бизнесу Структура компании","phaseId":101,"phase":"Структура компании","phaseGoal":"Сначала собрать оргструктуру: должности, подчинение, редактирование, ошибки и лучшие практики.","durationSeconds":1574.0,"summary":"Настройка организационной структуры Platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики.","aiUse":"Использовать ИИ для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы.","videoUrl":"https://www.youtube.com/watch?v=AdhcfVT7Jx8","youtubeUrl":"https://www.youtube.com/watch?v=AdhcfVT7Jx8","transcriptUrl":"/Транскрипции/Платрум/40%20-%201%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8.json","srtUrl":"/Транскрипции/Платрум/40%20-%201%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 1  зачем бизнесу структура компании структура компании настройка организационной структуры platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики. использовать ии для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы."},{"system":"Платрум","id":"platrum-39","number":2,"sourceNumber":39,"title":"1 1 Структура компании  базовая настройка","phaseId":101,"phase":"Структура компании","phaseGoal":"Сначала собрать оргструктуру: должности, подчинение, редактирование, ошибки и лучшие практики.","durationSeconds":489.0,"summary":"Настройка организационной структуры Platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики.","aiUse":"Использовать ИИ для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы.","videoUrl":"https://www.youtube.com/watch?v=K5F_dBcWNrA","youtubeUrl":"https://www.youtube.com/watch?v=K5F_dBcWNrA","transcriptUrl":"/Транскрипции/Платрум/39%20-%201%201%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%B1%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0.json","srtUrl":"/Транскрипции/Платрум/39%20-%201%201%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%B1%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D1%8F%20%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 1 1 структура компании  базовая настройка структура компании настройка организационной структуры platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики. использовать ии для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы."},{"system":"Платрум","id":"platrum-38","number":3,"sourceNumber":38,"title":"1 2 Структура компании  редактирование","phaseId":101,"phase":"Структура компании","phaseGoal":"Сначала собрать оргструктуру: должности, подчинение, редактирование, ошибки и лучшие практики.","durationSeconds":453.0,"summary":"Настройка организационной структуры Platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики.","aiUse":"Использовать ИИ для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы.","videoUrl":"https://www.youtube.com/watch?v=5UCgMftaHv0","youtubeUrl":"https://www.youtube.com/watch?v=5UCgMftaHv0","transcriptUrl":"/Транскрипции/Платрум/38%20-%201%202%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D1%80%D0%B5%D0%B4%D0%B0%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5.json","srtUrl":"/Транскрипции/Платрум/38%20-%201%202%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D1%80%D0%B5%D0%B4%D0%B0%D0%BA%D1%82%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 1 2 структура компании  редактирование структура компании настройка организационной структуры platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики. использовать ии для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы."},{"system":"Платрум","id":"platrum-37","number":4,"sourceNumber":37,"title":"2  Структура компании  Типичные ошибки","phaseId":101,"phase":"Структура компании","phaseGoal":"Сначала собрать оргструктуру: должности, подчинение, редактирование, ошибки и лучшие практики.","durationSeconds":673.0,"summary":"Настройка организационной структуры Platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики.","aiUse":"Использовать ИИ для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы.","videoUrl":"https://www.youtube.com/watch?v=ddg6rdK2qWU","youtubeUrl":"https://www.youtube.com/watch?v=ddg6rdK2qWU","transcriptUrl":"/Транскрипции/Платрум/37%20-%202%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/37%20-%202%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2  структура компании  типичные ошибки структура компании настройка организационной структуры platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики. использовать ии для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы."},{"system":"Платрум","id":"platrum-36","number":5,"sourceNumber":36,"title":"3  Структура  компании  Лучшие практики","phaseId":101,"phase":"Структура компании","phaseGoal":"Сначала собрать оргструктуру: должности, подчинение, редактирование, ошибки и лучшие практики.","durationSeconds":729.0,"summary":"Настройка организационной структуры Platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики.","aiUse":"Использовать ИИ для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы.","videoUrl":"https://www.youtube.com/watch?v=c4_B0B85rec","youtubeUrl":"https://www.youtube.com/watch?v=c4_B0B85rec","transcriptUrl":"/Транскрипции/Платрум/36%20-%203%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/36%20-%203%20%D0%A1%D1%82%D1%80%D1%83%D0%BA%D1%82%D1%83%D1%80%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D0%B0%D0%BD%D0%B8%D0%B8%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 3  структура  компании  лучшие практики структура компании настройка организационной структуры platrum: должности, связи, редактирование, ошибки внедрения и лучшие практики. использовать ии для аудита оргструктуры: найти пустые роли, пересечения ответственности, неясные подчинения и доступы."},{"system":"Платрум","id":"platrum-35","number":6,"sourceNumber":35,"title":"1   База знаний","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":922.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=5aYDnOmmgc8","youtubeUrl":"https://www.youtube.com/watch?v=5aYDnOmmgc8","transcriptUrl":"/Транскрипции/Платрум/35%20-%201%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9.json","srtUrl":"/Транскрипции/Платрум/35%20-%201%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 1   база знаний база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-34","number":7,"sourceNumber":34,"title":"Зачем бизнесу База знаний Platrum 2.1","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":922.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=xIj5RaDuEJ4","youtubeUrl":"https://www.youtube.com/watch?v=xIj5RaDuEJ4","transcriptUrl":"/Транскрипции/Платрум/34%20-%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20Platrum%202.1.json","srtUrl":"/Транскрипции/Платрум/34%20-%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20Platrum%202.1.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум зачем бизнесу база знаний platrum 2.1 база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-33","number":8,"sourceNumber":33,"title":"Создание статей и доступы к ним 2.3","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":559.0,"summary":"Практический урок по созданию статей базы знаний и управлению доступами к ним.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=KgO0Pz4_flo","youtubeUrl":"https://www.youtube.com/watch?v=KgO0Pz4_flo","transcriptUrl":"/Транскрипции/Платрум/33%20-%20%D0%A1%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%20%D1%81%D1%82%D0%B0%D1%82%D0%B5%D0%B9%20%D0%B8%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D1%8B%20%D0%BA%20%D0%BD%D0%B8%D0%BC%202.3.json","srtUrl":"/Транскрипции/Платрум/33%20-%20%D0%A1%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%20%D1%81%D1%82%D0%B0%D1%82%D0%B5%D0%B9%20%D0%B8%20%D0%B4%D0%BE%D1%81%D1%82%D1%83%D0%BF%D1%8B%20%D0%BA%20%D0%BD%D0%B8%D0%BC%202.3.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум создание статей и доступы к ним 2.3 база знаний и академия практический урок по созданию статей базы знаний и управлению доступами к ним. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-32","number":9,"sourceNumber":32,"title":"Зачем бизнесу Академия Platrum 2.2","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":754.0,"summary":"Академия как контур обучения сотрудников: кейсы, FAQ, ошибки, лучшие практики и контроль понимания.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=WGNUnYjvAnU","youtubeUrl":"https://www.youtube.com/watch?v=WGNUnYjvAnU","transcriptUrl":"/Транскрипции/Платрум/32%20-%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20Platrum%202.2.json","srtUrl":"/Транскрипции/Платрум/32%20-%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20Platrum%202.2.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум зачем бизнесу академия platrum 2.2 база знаний и академия академия как контур обучения сотрудников: кейсы, faq, ошибки, лучшие практики и контроль понимания. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-28","number":10,"sourceNumber":28,"title":"База знаний и Академия  От создания вопроса до проверки экзамена 1","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":497.0,"summary":"Связка базы знаний и академии: от создания вопроса и статьи до проверки обучения и поддержания актуальности.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=iauEt94EOzc","youtubeUrl":"https://www.youtube.com/watch?v=iauEt94EOzc","transcriptUrl":"/Транскрипции/Платрум/28%20-%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%B8%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9E%D1%82%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F%20%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D0%B0%20%D0%B4%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B8%20%D1%8D%D0%BA%D0%B7%D0%B0%D0%BC%D0%B5%D0%BD%D0%B0%201.json","srtUrl":"/Транскрипции/Платрум/28%20-%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%B8%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9E%D1%82%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D1%8F%20%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D0%B0%20%D0%B4%D0%BE%20%D0%BF%D1%80%D0%BE%D0%B2%D0%B5%D1%80%D0%BA%D0%B8%20%D1%8D%D0%BA%D0%B7%D0%B0%D0%BC%D0%B5%D0%BD%D0%B0%201.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум база знаний и академия  от создания вопроса до проверки экзамена 1 база знаний и академия связка базы знаний и академии: от создания вопроса и статьи до проверки обучения и поддержания актуальности. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-29","number":11,"sourceNumber":29,"title":"База знаний и Академия  Поддержание системы знаний","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":426.0,"summary":"Связка базы знаний и академии: от создания вопроса и статьи до проверки обучения и поддержания актуальности.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=YsrYvndXd3w","youtubeUrl":"https://www.youtube.com/watch?v=YsrYvndXd3w","transcriptUrl":"/Транскрипции/Платрум/29%20-%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%B8%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B0%D0%BD%D0%B8%D0%B5%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9.json","srtUrl":"/Транскрипции/Платрум/29%20-%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%B8%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B0%D0%BD%D0%B8%D0%B5%20%D1%81%D0%B8%D1%81%D1%82%D0%B5%D0%BC%D1%8B%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум база знаний и академия  поддержание системы знаний база знаний и академия связка базы знаний и академии: от создания вопроса и статьи до проверки обучения и поддержания актуальности. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-30","number":12,"sourceNumber":30,"title":"2  База знаний  Кейсы использования","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":570.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=bB1i2F_kqHc","youtubeUrl":"https://www.youtube.com/watch?v=bB1i2F_kqHc","transcriptUrl":"/Транскрипции/Платрум/30%20-%202%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.json","srtUrl":"/Транскрипции/Платрум/30%20-%202%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2  база знаний  кейсы использования база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-23","number":13,"sourceNumber":23,"title":"3  База знаний  Частые вопросы","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":2755.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=0EYJ7656GP4","youtubeUrl":"https://www.youtube.com/watch?v=0EYJ7656GP4","transcriptUrl":"/Транскрипции/Платрум/23%20-%203%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%A7%D0%B0%D1%81%D1%82%D1%8B%D0%B5%20%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D1%8B.json","srtUrl":"/Транскрипции/Платрум/23%20-%203%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%A7%D0%B0%D1%81%D1%82%D1%8B%D0%B5%20%D0%B2%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D1%8B.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 3  база знаний  частые вопросы база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-31","number":14,"sourceNumber":31,"title":"4  База знаний  Типичные ошибки внедрения","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":1024.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=cq1mEdwD7kQ","youtubeUrl":"https://www.youtube.com/watch?v=cq1mEdwD7kQ","transcriptUrl":"/Транскрипции/Платрум/31%20-%204%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8%20%D0%B2%D0%BD%D0%B5%D0%B4%D1%80%D0%B5%D0%BD%D0%B8%D1%8F.json","srtUrl":"/Транскрипции/Платрум/31%20-%204%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8%20%D0%B2%D0%BD%D0%B5%D0%B4%D1%80%D0%B5%D0%BD%D0%B8%D1%8F.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 4  база знаний  типичные ошибки внедрения база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-22","number":15,"sourceNumber":22,"title":"5  База знаний  Лучшие практики","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":641.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=VsUqW-3Elh4","youtubeUrl":"https://www.youtube.com/watch?v=VsUqW-3Elh4","transcriptUrl":"/Транскрипции/Платрум/22%20-%205%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/22%20-%205%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 5  база знаний  лучшие практики база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-27","number":16,"sourceNumber":27,"title":"5  База знаний  Лучшие практики","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":641.0,"summary":"База знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=s1UOeG7gJuc","youtubeUrl":"https://www.youtube.com/watch?v=s1UOeG7gJuc","transcriptUrl":"/Транскрипции/Платрум/27%20-%205%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/27%20-%205%20%D0%91%D0%B0%D0%B7%D0%B0%20%D0%B7%D0%BD%D0%B0%D0%BD%D0%B8%D0%B9%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 5  база знаний  лучшие практики база знаний и академия база знаний как управленческая память компании: статьи, доступы, типовые вопросы, ошибки и лучшие практики. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-24","number":17,"sourceNumber":24,"title":"2  Академия  Кейсы использования","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":426.0,"summary":"Академия как контур обучения сотрудников: кейсы, FAQ, ошибки, лучшие практики и контроль понимания.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=UAYAa2teqwU","youtubeUrl":"https://www.youtube.com/watch?v=UAYAa2teqwU","transcriptUrl":"/Транскрипции/Платрум/24%20-%202%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.json","srtUrl":"/Транскрипции/Платрум/24%20-%202%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2  академия  кейсы использования база знаний и академия академия как контур обучения сотрудников: кейсы, faq, ошибки, лучшие практики и контроль понимания. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-25","number":18,"sourceNumber":25,"title":"3  Академия FAQ","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":795.0,"summary":"Академия как контур обучения сотрудников: кейсы, FAQ, ошибки, лучшие практики и контроль понимания.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=eKfSd-WhF40","youtubeUrl":"https://www.youtube.com/watch?v=eKfSd-WhF40","transcriptUrl":"/Транскрипции/Платрум/25%20-%203%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20FAQ.json","srtUrl":"/Транскрипции/Платрум/25%20-%203%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20FAQ.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 3  академия faq база знаний и академия академия как контур обучения сотрудников: кейсы, faq, ошибки, лучшие практики и контроль понимания. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-26","number":19,"sourceNumber":26,"title":"4  Академия  Типичные ошибки","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":715.0,"summary":"Академия как контур обучения сотрудников: кейсы, FAQ, ошибки, лучшие практики и контроль понимания.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=2KJW87S-P6k","youtubeUrl":"https://www.youtube.com/watch?v=2KJW87S-P6k","transcriptUrl":"/Транскрипции/Платрум/26%20-%204%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/26%20-%204%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 4  академия  типичные ошибки база знаний и академия академия как контур обучения сотрудников: кейсы, faq, ошибки, лучшие практики и контроль понимания. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-21","number":20,"sourceNumber":21,"title":"5  Академия  Лучшие практики","phaseId":102,"phase":"База знаний и Академия","phaseGoal":"Затем описать знания, обучение, экзамены, доступы и поддержание системы знаний.","durationSeconds":596.0,"summary":"Академия как контур обучения сотрудников: кейсы, FAQ, ошибки, лучшие практики и контроль понимания.","aiUse":"Собрать AI-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов.","videoUrl":"https://www.youtube.com/watch?v=ctARLfXhxik","youtubeUrl":"https://www.youtube.com/watch?v=ctARLfXhxik","transcriptUrl":"/Транскрипции/Платрум/21%20-%205%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/21%20-%205%20%D0%90%D0%BA%D0%B0%D0%B4%D0%B5%D0%BC%D0%B8%D1%8F%20%D0%9B%D1%83%D1%87%D1%88%D0%B8%D0%B5%20%D0%BF%D1%80%D0%B0%D0%BA%D1%82%D0%B8%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 5  академия  лучшие практики база знаний и академия академия как контур обучения сотрудников: кейсы, faq, ошибки, лучшие практики и контроль понимания. собрать ai-базу знаний: генерация статей, вопросов, экзаменов, проверка понимания и поиск устаревших материалов."},{"system":"Платрум","id":"platrum-17","number":21,"sourceNumber":17,"title":"2 1 Метрики  обзор инструмента","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":258.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=P4nGT3gptH8","youtubeUrl":"https://www.youtube.com/watch?v=P4nGT3gptH8","transcriptUrl":"/Транскрипции/Платрум/17%20-%202%201%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%20%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0.json","srtUrl":"/Транскрипции/Платрум/17%20-%202%201%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%20%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2 1 метрики  обзор инструмента метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-16","number":22,"sourceNumber":16,"title":"2 2 Метрики  создание и настройка","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":561.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=GIjZ8mL5R_I","youtubeUrl":"https://www.youtube.com/watch?v=GIjZ8mL5R_I","transcriptUrl":"/Транскрипции/Платрум/16%20-%202%202%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%B8%20%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0.json","srtUrl":"/Транскрипции/Платрум/16%20-%202%202%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%BD%D0%B8%D0%B5%20%D0%B8%20%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2 2 метрики  создание и настройка метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-14","number":23,"sourceNumber":14,"title":"2 3 Метрики  рабочий стол","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":485.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=5XaFDiyqTgQ","youtubeUrl":"https://www.youtube.com/watch?v=5XaFDiyqTgQ","transcriptUrl":"/Транскрипции/Платрум/14%20-%202%203%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D1%80%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9%20%D1%81%D1%82%D0%BE%D0%BB.json","srtUrl":"/Транскрипции/Платрум/14%20-%202%203%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D1%80%D0%B0%D0%B1%D0%BE%D1%87%D0%B8%D0%B9%20%D1%81%D1%82%D0%BE%D0%BB.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2 3 метрики  рабочий стол метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-15","number":24,"sourceNumber":15,"title":"2 5 Метрики  передача значений другому сотруднику","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":242.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=xkxLEdSAdz8","youtubeUrl":"https://www.youtube.com/watch?v=xkxLEdSAdz8","transcriptUrl":"/Транскрипции/Платрум/15%20-%202%205%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B0%D1%87%D0%B0%20%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B9%20%D0%B4%D1%80%D1%83%D0%B3%D0%BE%D0%BC%D1%83%20%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D0%BA%D1%83.json","srtUrl":"/Транскрипции/Платрум/15%20-%202%205%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%BF%D0%B5%D1%80%D0%B5%D0%B4%D0%B0%D1%87%D0%B0%20%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B9%20%D0%B4%D1%80%D1%83%D0%B3%D0%BE%D0%BC%D1%83%20%D1%81%D0%BE%D1%82%D1%80%D1%83%D0%B4%D0%BD%D0%B8%D0%BA%D1%83.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2 5 метрики  передача значений другому сотруднику метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-20","number":25,"sourceNumber":20,"title":"2   Метрики   Кейсы использования","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":655.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=vQRKdLaFVHM","youtubeUrl":"https://www.youtube.com/watch?v=vQRKdLaFVHM","transcriptUrl":"/Транскрипции/Платрум/20%20-%202%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.json","srtUrl":"/Транскрипции/Платрум/20%20-%202%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2   метрики   кейсы использования метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-19","number":26,"sourceNumber":19,"title":"3   Метрики   Q&amp;A Вопросы Ответы","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":1753.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=log85XxS1mE","youtubeUrl":"https://www.youtube.com/watch?v=log85XxS1mE","transcriptUrl":"/Транскрипции/Платрум/19%20-%203%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20Q%26A%20%D0%92%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D1%8B%20%D0%9E%D1%82%D0%B2%D0%B5%D1%82%D1%8B.json","srtUrl":"/Транскрипции/Платрум/19%20-%203%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20Q%26A%20%D0%92%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D1%8B%20%D0%9E%D1%82%D0%B2%D0%B5%D1%82%D1%8B.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 3   метрики   q&amp;a вопросы ответы метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-18","number":27,"sourceNumber":18,"title":"4  Метрики  Типичные ошибки","phaseId":103,"phase":"Метрики","phaseGoal":"После ролей и знаний подключить измеримость: обзор, настройка, рабочий стол, кейсы и ошибки.","durationSeconds":548.0,"summary":"Метрики Platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки.","aiUse":"Подключить ИИ к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий.","videoUrl":"https://www.youtube.com/watch?v=t4jyOxouZT0","youtubeUrl":"https://www.youtube.com/watch?v=t4jyOxouZT0","transcriptUrl":"/Транскрипции/Платрум/18%20-%204%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/18%20-%204%20%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8%20%D0%A2%D0%B8%D0%BF%D0%B8%D1%87%D0%BD%D1%8B%D0%B5%20%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 4  метрики  типичные ошибки метрики метрики platrum: создание, настройка, рабочий стол, передача значений, кейсы, вопросы и типовые ошибки. подключить ии к метрикам: объяснять отклонения, искать причины, готовить вопросы владельцам и план корректирующих действий."},{"system":"Платрум","id":"platrum-13","number":28,"sourceNumber":13,"title":"1  Зачем бизнесу Дашборды от Platrum","phaseId":104,"phase":"Дашборды","phaseGoal":"Собрать обзорные панели, чтобы руководитель видел состояние системы без ручного поиска.","durationSeconds":249.0,"summary":"Дашборды Platrum: зачем они нужны бизнесу, сценарии использования и ответы на типовые вопросы.","aiUse":"Использовать ИИ как слой интерпретации дашбордов: краткая сводка, риски, аномалии и следующие управленческие шаги.","videoUrl":"https://www.youtube.com/watch?v=9wUWAU3DnAA","youtubeUrl":"https://www.youtube.com/watch?v=9wUWAU3DnAA","transcriptUrl":"/Транскрипции/Платрум/13%20-%201%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%94%D0%B0%D1%88%D0%B1%D0%BE%D1%80%D0%B4%D1%8B%20%D0%BE%D1%82%20Platrum.json","srtUrl":"/Транскрипции/Платрум/13%20-%201%20%D0%97%D0%B0%D1%87%D0%B5%D0%BC%20%D0%B1%D0%B8%D0%B7%D0%BD%D0%B5%D1%81%D1%83%20%D0%94%D0%B0%D1%88%D0%B1%D0%BE%D1%80%D0%B4%D1%8B%20%D0%BE%D1%82%20Platrum.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 1  зачем бизнесу дашборды от platrum дашборды дашборды platrum: зачем они нужны бизнесу, сценарии использования и ответы на типовые вопросы. использовать ии как слой интерпретации дашбордов: краткая сводка, риски, аномалии и следующие управленческие шаги."},{"system":"Платрум","id":"platrum-12","number":29,"sourceNumber":12,"title":"2   Дашборды  Кейсы использования","phaseId":104,"phase":"Дашборды","phaseGoal":"Собрать обзорные панели, чтобы руководитель видел состояние системы без ручного поиска.","durationSeconds":445.0,"summary":"Дашборды Platrum: зачем они нужны бизнесу, сценарии использования и ответы на типовые вопросы.","aiUse":"Использовать ИИ как слой интерпретации дашбордов: краткая сводка, риски, аномалии и следующие управленческие шаги.","videoUrl":"https://www.youtube.com/watch?v=ZFOTEDDTBHc","youtubeUrl":"https://www.youtube.com/watch?v=ZFOTEDDTBHc","transcriptUrl":"/Транскрипции/Платрум/12%20-%202%20%D0%94%D0%B0%D1%88%D0%B1%D0%BE%D1%80%D0%B4%D1%8B%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.json","srtUrl":"/Транскрипции/Платрум/12%20-%202%20%D0%94%D0%B0%D1%88%D0%B1%D0%BE%D1%80%D0%B4%D1%8B%20%D0%9A%D0%B5%D0%B9%D1%81%D1%8B%20%D0%B8%D1%81%D0%BF%D0%BE%D0%BB%D1%8C%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 2   дашборды  кейсы использования дашборды дашборды platrum: зачем они нужны бизнесу, сценарии использования и ответы на типовые вопросы. использовать ии как слой интерпретации дашбордов: краткая сводка, риски, аномалии и следующие управленческие шаги."},{"system":"Платрум","id":"platrum-11","number":30,"sourceNumber":11,"title":"3   Дашборды  Q&amp;A Вопросы Ответы","phaseId":104,"phase":"Дашборды","phaseGoal":"Собрать обзорные панели, чтобы руководитель видел состояние системы без ручного поиска.","durationSeconds":315.0,"summary":"Дашборды Platrum: зачем они нужны бизнесу, сценарии использования и ответы на типовые вопросы.","aiUse":"Использовать ИИ как слой интерпретации дашбордов: краткая сводка, риски, аномалии и следующие управленческие шаги.","videoUrl":"https://www.youtube.com/watch?v=LR63J7zWgnU","youtubeUrl":"https://www.youtube.com/watch?v=LR63J7zWgnU","transcriptUrl":"/Транскрипции/Платрум/11%20-%203%20%D0%94%D0%B0%D1%88%D0%B1%D0%BE%D1%80%D0%B4%D1%8B%20Q%26A%20%D0%92%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D1%8B%20%D0%9E%D1%82%D0%B2%D0%B5%D1%82%D1%8B.json","srtUrl":"/Транскрипции/Платрум/11%20-%203%20%D0%94%D0%B0%D1%88%D0%B1%D0%BE%D1%80%D0%B4%D1%8B%20Q%26A%20%D0%92%D0%BE%D0%BF%D1%80%D0%BE%D1%81%D1%8B%20%D0%9E%D1%82%D0%B2%D0%B5%D1%82%D1%8B.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 3   дашборды  q&amp;a вопросы ответы дашборды дашборды platrum: зачем они нужны бизнесу, сценарии использования и ответы на типовые вопросы. использовать ии как слой интерпретации дашбордов: краткая сводка, риски, аномалии и следующие управленческие шаги."},{"system":"Платрум","id":"platrum-10","number":31,"sourceNumber":10,"title":"6 1 Финансы  работа с транзакциями","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":695.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=QZE-3qFJ8xo","youtubeUrl":"https://www.youtube.com/watch?v=QZE-3qFJ8xo","transcriptUrl":"/Транскрипции/Платрум/10%20-%206%201%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%20%D1%81%20%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D1%8F%D0%BC%D0%B8.json","srtUrl":"/Транскрипции/Платрум/10%20-%206%201%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%20%D1%81%20%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D1%8F%D0%BC%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 1 финансы  работа с транзакциями финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-09","number":32,"sourceNumber":9,"title":"6 2 Финансы  типы транзакций","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":717.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=1I96r-dBDIo","youtubeUrl":"https://www.youtube.com/watch?v=1I96r-dBDIo","transcriptUrl":"/Транскрипции/Платрум/09%20-%206%202%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D1%82%D0%B8%D0%BF%D1%8B%20%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D0%B9.json","srtUrl":"/Транскрипции/Платрум/09%20-%206%202%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D1%82%D0%B8%D0%BF%D1%8B%20%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D0%B9.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 2 финансы  типы транзакций финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-08","number":33,"sourceNumber":8,"title":"6 3 Финансы  импорт транзакций","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":501.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=M4D3L_8CjBY","youtubeUrl":"https://www.youtube.com/watch?v=M4D3L_8CjBY","transcriptUrl":"/Транскрипции/Платрум/08%20-%206%203%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%B8%D0%BC%D0%BF%D0%BE%D1%80%D1%82%20%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D0%B9.json","srtUrl":"/Транскрипции/Платрум/08%20-%206%203%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%B8%D0%BC%D0%BF%D0%BE%D1%80%D1%82%20%D1%82%D1%80%D0%B0%D0%BD%D0%B7%D0%B0%D0%BA%D1%86%D0%B8%D0%B9.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 3 финансы  импорт транзакций финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-07","number":34,"sourceNumber":7,"title":"6 4 Финансы  отчет ДДС","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":507.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=p8-GoQ4KLok","youtubeUrl":"https://www.youtube.com/watch?v=p8-GoQ4KLok","transcriptUrl":"/Транскрипции/Платрум/07%20-%206%204%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20%D0%94%D0%94%D0%A1.json","srtUrl":"/Транскрипции/Платрум/07%20-%206%204%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20%D0%94%D0%94%D0%A1.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 4 финансы  отчет ддс финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-06","number":35,"sourceNumber":6,"title":"6 5 Финансы  отчет Баланс","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":615.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=UN-H7eOqg2o","youtubeUrl":"https://www.youtube.com/watch?v=UN-H7eOqg2o","transcriptUrl":"/Транскрипции/Платрум/06%20-%206%205%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20%D0%91%D0%B0%D0%BB%D0%B0%D0%BD%D1%81.json","srtUrl":"/Транскрипции/Платрум/06%20-%206%205%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20%D0%91%D0%B0%D0%BB%D0%B0%D0%BD%D1%81.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 5 финансы  отчет баланс финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-05","number":36,"sourceNumber":5,"title":"6 6 Финансы  отчет План по месяцам","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":674.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=-W71YpypBNQ","youtubeUrl":"https://www.youtube.com/watch?v=-W71YpypBNQ","transcriptUrl":"/Транскрипции/Платрум/05%20-%206%206%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20%D0%9F%D0%BB%D0%B0%D0%BD%20%D0%BF%D0%BE%20%D0%BC%D0%B5%D1%81%D1%8F%D1%86%D0%B0%D0%BC.json","srtUrl":"/Транскрипции/Платрум/05%20-%206%206%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20%D0%9F%D0%BB%D0%B0%D0%BD%20%D0%BF%D0%BE%20%D0%BC%D0%B5%D1%81%D1%8F%D1%86%D0%B0%D0%BC.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 6 финансы  отчет план по месяцам финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-04","number":37,"sourceNumber":4,"title":"6 7 Финансы  отчет P&amp;L","phaseId":105,"phase":"Финансы","phaseGoal":"Настроить финансовый контур: транзакции, типы, импорт и управленческие отчёты.","durationSeconds":841.0,"summary":"Финансовый контур Platrum: транзакции, типы, импорт и отчеты ДДС, баланс, план по месяцам, P&amp;L.","aiUse":"Настроить AI-финаналитика: классификация транзакций, план-факт, расшифровка ДДС/баланса/P&amp;L и подсветка рисков.","videoUrl":"https://www.youtube.com/watch?v=vu-5Yh5PBS4","youtubeUrl":"https://www.youtube.com/watch?v=vu-5Yh5PBS4","transcriptUrl":"/Транскрипции/Платрум/04%20-%206%207%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20P%26L.json","srtUrl":"/Транскрипции/Платрум/04%20-%206%207%20%D0%A4%D0%B8%D0%BD%D0%B0%D0%BD%D1%81%D1%8B%20%D0%BE%D1%82%D1%87%D0%B5%D1%82%20P%26L.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 6 7 финансы  отчет p&amp;l финансы финансовый контур platrum: транзакции, типы, импорт и отчеты ддс, баланс, план по месяцам, p&amp;l. настроить ai-финаналитика: классификация транзакций, план-факт, расшифровка ддс/баланса/p&amp;l и подсветка рисков."},{"system":"Платрум","id":"platrum-02","number":38,"sourceNumber":2,"title":"7 1 Финплан  обзор инструмента 1","phaseId":106,"phase":"Финплан","phaseGoal":"Завершить финансовый блок заявками, согласованием и настройками финансового планирования.","durationSeconds":1411.0,"summary":"Финансовое планирование: обзор инструмента, заявки, согласование и настройки правил выделения средств.","aiUse":"Сделать AI-помощника по заявкам: проверка обоснования расходов, приоритетов, лимитов и маршрута согласования.","videoUrl":"https://www.youtube.com/watch?v=qVvyOWFIh8U","youtubeUrl":"https://www.youtube.com/watch?v=qVvyOWFIh8U","transcriptUrl":"/Транскрипции/Платрум/02%20-%207%201%20%D0%A4%D0%B8%D0%BD%D0%BF%D0%BB%D0%B0%D0%BD%20%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%20%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%201.json","srtUrl":"/Транскрипции/Платрум/02%20-%207%201%20%D0%A4%D0%B8%D0%BD%D0%BF%D0%BB%D0%B0%D0%BD%20%D0%BE%D0%B1%D0%B7%D0%BE%D1%80%20%D0%B8%D0%BD%D1%81%D1%82%D1%80%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%201.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 7 1 финплан  обзор инструмента 1 финплан финансовое планирование: обзор инструмента, заявки, согласование и настройки правил выделения средств. сделать ai-помощника по заявкам: проверка обоснования расходов, приоритетов, лимитов и маршрута согласования."},{"system":"Платрум","id":"platrum-01","number":39,"sourceNumber":1,"title":"7 2 Финплан  настройка","phaseId":106,"phase":"Финплан","phaseGoal":"Завершить финансовый блок заявками, согласованием и настройками финансового планирования.","durationSeconds":558.0,"summary":"Финансовое планирование: обзор инструмента, заявки, согласование и настройки правил выделения средств.","aiUse":"Сделать AI-помощника по заявкам: проверка обоснования расходов, приоритетов, лимитов и маршрута согласования.","videoUrl":"https://www.youtube.com/watch?v=Xdv3LcvS6f4","youtubeUrl":"https://www.youtube.com/watch?v=Xdv3LcvS6f4","transcriptUrl":"/Транскрипции/Платрум/01%20-%207%202%20%D0%A4%D0%B8%D0%BD%D0%BF%D0%BB%D0%B0%D0%BD%20%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0.json","srtUrl":"/Транскрипции/Платрум/01%20-%207%202%20%D0%A4%D0%B8%D0%BD%D0%BF%D0%BB%D0%B0%D0%BD%20%D0%BD%D0%B0%D1%81%D1%82%D1%80%D0%BE%D0%B9%D0%BA%D0%B0.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум 7 2 финплан  настройка финплан финансовое планирование: обзор инструмента, заявки, согласование и настройки правил выделения средств. сделать ai-помощника по заявкам: проверка обоснования расходов, приоритетов, лимитов и маршрута согласования."},{"system":"Платрум","id":"platrum-03","number":40,"sourceNumber":3,"title":"Как научиться создавать продающие заголовки","phaseId":107,"phase":"Дополнительно","phaseGoal":"Смотреть после управленческого маршрута как отдельный полезный материал.","durationSeconds":4844.0,"summary":"Дополнительный урок по созданию продающих заголовков и упаковке смысла для коммуникаций.","aiUse":"Использовать ИИ для упаковки смыслов: варианты заголовков, A/B-гипотезы, проверка ясности и выгоды.","videoUrl":"https://www.youtube.com/watch?v=BcbVct2abE8","youtubeUrl":"https://www.youtube.com/watch?v=BcbVct2abE8","transcriptUrl":"/Транскрипции/Платрум/03%20-%20%D0%9A%D0%B0%D0%BA%20%D0%BD%D0%B0%D1%83%D1%87%D0%B8%D1%82%D1%8C%D1%81%D1%8F%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%B2%D0%B0%D1%82%D1%8C%20%D0%BF%D1%80%D0%BE%D0%B4%D0%B0%D1%8E%D1%89%D0%B8%D0%B5%20%D0%B7%D0%B0%D0%B3%D0%BE%D0%BB%D0%BE%D0%B2%D0%BA%D0%B8.json","srtUrl":"/Транскрипции/Платрум/03%20-%20%D0%9A%D0%B0%D0%BA%20%D0%BD%D0%B0%D1%83%D1%87%D0%B8%D1%82%D1%8C%D1%81%D1%8F%20%D1%81%D0%BE%D0%B7%D0%B4%D0%B0%D0%B2%D0%B0%D1%82%D1%8C%20%D0%BF%D1%80%D0%BE%D0%B4%D0%B0%D1%8E%D1%89%D0%B8%D0%B5%20%D0%B7%D0%B0%D0%B3%D0%BE%D0%BB%D0%BE%D0%B2%D0%BA%D0%B8.srt","sourceKind":"youtube","status":"ready","segments":[],"searchText":"платрум как научиться создавать продающие заголовки дополнительно дополнительный урок по созданию продающих заголовков и упаковке смысла для коммуникаций. использовать ии для упаковки смыслов: варианты заголовков, a/b-гипотезы, проверка ясности и выгоды."}],"platrum":{"linksFile":"Ссылки из ютуб.md","linksCount":40,"statusText":"Платрум транскрибирован и выстроен по смыслу"},"publicBuild":{"mode":"single-file","note":"Lightweight public build: videos, navigation, descriptions, comments and progress; full transcripts are stored in source project."}}</script>
+<script>
+const state = {
+  data: null,
+  system: "Квант",
+  phase: "all",
+  activeId: null,
+  query: "",
+  segmentQuery: "",
+  videoLoadToken: 0,
+  directVideoCache: {},
+  progress: JSON.parse(localStorage.getItem("learning-progress") || "{}"),
+  comments: JSON.parse(localStorage.getItem("learning-comments") || "{}"),
+};
+
+const els = {
+  systemTabs: document.querySelectorAll(".system-tab"),
+  searchInput: document.querySelector("#searchInput"),
+  phaseFilters: document.querySelector("#phaseFilters"),
+  lessonList: document.querySelector("#lessonList"),
+  lessonKicker: document.querySelector("#lessonKicker"),
+  lessonTitle: document.querySelector("#lessonTitle"),
+  video: document.querySelector("#videoPlayer"),
+  youtubeFrame: document.querySelector("#youtubeFrame"),
+  emptyState: document.querySelector("#emptyState"),
+  transcriptLink: document.querySelector("#transcriptLink"),
+  srtLink: document.querySelector("#srtLink"),
+  sourceLink: document.querySelector("#sourceLink"),
+  lessonSummary: document.querySelector("#lessonSummary"),
+  lessonAi: document.querySelector("#lessonAi"),
+  completeButton: document.querySelector("#completeButton"),
+  commentInput: document.querySelector("#commentInput"),
+  saveComment: document.querySelector("#saveComment"),
+  commentsList: document.querySelector("#commentsList"),
+  commentCount: document.querySelector("#commentCount"),
+  segmentSearch: document.querySelector("#segmentSearch"),
+  transcriptSegments: document.querySelector("#transcriptSegments"),
+};
+
+function saveProgress() {
+  localStorage.setItem("learning-progress", JSON.stringify(state.progress));
+}
+
+function saveComments() {
+  localStorage.setItem("learning-comments", JSON.stringify(state.comments));
+}
+
+function formatDuration(seconds) {
+  if (!seconds) return "ожидает";
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.round(seconds % 60).toString().padStart(2, "0");
+  return `${mins}:${secs}`;
+}
+
+function formatTime(seconds) {
+  const total = Math.floor(seconds || 0);
+  const h = Math.floor(total / 3600).toString().padStart(2, "0");
+  const m = Math.floor((total % 3600) / 60).toString().padStart(2, "0");
+  const s = Math.floor(total % 60).toString().padStart(2, "0");
+  return `${h}:${m}:${s}`;
+}
+
+function youtubeEmbed(url) {
+  const match = url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : null;
+}
+
+function resolveAssetUrl(url) {
+  if (!url) return url;
+  if (/^https?:\/\//.test(url)) return url;
+  if (location.protocol === "file:" && url.startsWith("/")) return `..${url}`;
+  return url;
+}
+
+async function resolveYandexPublicVideo(publicUrl) {
+  if (!publicUrl) return null;
+  if (state.directVideoCache[publicUrl]) return state.directVideoCache[publicUrl];
+  const apiUrl = `https://cloud-api.yandex.net/v1/disk/public/resources/download?public_key=${encodeURIComponent(publicUrl)}`;
+  const response = await fetch(apiUrl);
+  if (!response.ok) {
+    throw new Error(`Yandex public download failed: ${response.status}`);
+  }
+  const payload = await response.json();
+  if (!payload.href) {
+    throw new Error("Yandex public download returned no href");
+  }
+  state.directVideoCache[publicUrl] = payload.href;
+  return payload.href;
+}
+
+async function loadExternalVideo(lesson, progress) {
+  const token = ++state.videoLoadToken;
+  els.youtubeFrame.hidden = true;
+  els.video.hidden = true;
+  els.video.removeAttribute("src");
+  els.video.load();
+  els.emptyState.hidden = false;
+  els.emptyState.textContent = "Загружаю видео с Яндекс Диска...";
+  try {
+    const videoUrl = await resolveYandexPublicVideo(lesson.externalVideoUrl || lesson.videoUrl);
+    if (token !== state.videoLoadToken || lesson.id !== state.activeId) return;
+    els.emptyState.hidden = true;
+    els.video.hidden = false;
+    els.video.src = videoUrl;
+    els.video.currentTime = progress.time || 0;
+    els.video.load();
+  } catch (error) {
+    if (token !== state.videoLoadToken || lesson.id !== state.activeId) return;
+    els.video.hidden = true;
+    els.emptyState.hidden = false;
+    els.emptyState.innerHTML = `<p>Не удалось встроить видео автоматически. Открой его через кнопку <strong>Источник</strong>.</p>`;
+    console.error(error);
+  }
+}
+
+function lessonsForCurrentSystem() {
+  const query = state.query.trim().toLowerCase();
+  return state.data.lessons.filter((lesson) => {
+    if (lesson.system !== state.system) return false;
+    if (state.phase !== "all" && String(lesson.phaseId) !== state.phase) return false;
+    if (query && !lesson.searchText.includes(query)) return false;
+    return true;
+  });
+}
+
+function setDisabledLink(el, disabled) {
+  el.setAttribute("aria-disabled", disabled ? "true" : "false");
+  el.tabIndex = disabled ? -1 : 0;
+}
+
+function renderPhases() {
+  const phases = state.data.phases.filter((phase) => {
+    return state.data.lessons.some((lesson) => lesson.system === state.system && lesson.phaseId === phase.id);
+  });
+  els.phaseFilters.innerHTML = "";
+  const all = document.createElement("button");
+  all.type = "button";
+  all.className = `phase-button ${state.phase === "all" ? "is-active" : ""}`;
+  all.textContent = "Все";
+  all.addEventListener("click", () => {
+    state.phase = "all";
+    render();
+  });
+  els.phaseFilters.append(all);
+
+  phases.forEach((phase) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `phase-button ${state.phase === String(phase.id) ? "is-active" : ""}`;
+    button.textContent = phase.name;
+    button.addEventListener("click", () => {
+      state.phase = String(phase.id);
+      render();
+    });
+    els.phaseFilters.append(button);
+  });
+}
+
+function renderLessonList() {
+  const lessons = lessonsForCurrentSystem();
+  els.lessonList.innerHTML = "";
+  if (!lessons.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-list";
+    empty.textContent = state.system === "Платрум"
+      ? state.data.platrum.statusText
+      : "Ничего не найдено";
+    els.lessonList.append(empty);
+    return;
+  }
+  lessons.forEach((lesson) => {
+    const progress = state.progress[lesson.id] || {};
+    const row = document.createElement("button");
+    row.type = "button";
+    row.className = `lesson-row ${lesson.id === state.activeId ? "is-active" : ""} ${progress.complete ? "is-complete" : ""}`;
+    row.innerHTML = `
+      <span class="lesson-number">${String(lesson.number).padStart(2, "0")}</span>
+      <span>
+        <span class="lesson-row-title"></span>
+        <span class="lesson-row-meta">${lesson.phase} · ${formatDuration(lesson.durationSeconds)}</span>
+      </span>
+      <span class="lesson-status">${progress.complete ? "готово" : ""}</span>
+    `;
+    row.querySelector(".lesson-row-title").textContent = lesson.title;
+    row.addEventListener("click", () => selectLesson(lesson.id));
+    els.lessonList.append(row);
+  });
+}
+
+function selectLesson(id) {
+  state.videoLoadToken += 1;
+  state.activeId = id;
+  state.segmentQuery = "";
+  els.segmentSearch.value = "";
+  render();
+}
+
+function activeLesson() {
+  return state.data.lessons.find((lesson) => lesson.id === state.activeId) || lessonsForCurrentSystem()[0] || null;
+}
+
+function renderActiveLesson() {
+  const lesson = activeLesson();
+  if (!lesson) {
+    els.lessonKicker.textContent = state.system;
+    els.lessonTitle.textContent = state.system === "Платрум" ? "Ссылки ещё не добавлены" : "Нет уроков";
+    els.video.hidden = true;
+    els.youtubeFrame.hidden = true;
+    els.emptyState.hidden = false;
+    els.emptyState.textContent = state.system === "Платрум"
+      ? "Добавь YouTube-ссылки в файл, затем пересобери платформу."
+      : "Нет данных для отображения.";
+    return;
+  }
+  state.activeId = lesson.id;
+  const progress = state.progress[lesson.id] || {};
+  els.lessonKicker.textContent = `${lesson.system} · ${lesson.phase} · ${formatDuration(lesson.durationSeconds)}`;
+  els.lessonTitle.textContent = `${String(lesson.number).padStart(2, "0")}. ${lesson.title}`;
+  els.lessonSummary.textContent = lesson.summary;
+  els.lessonAi.textContent = lesson.aiUse;
+  els.completeButton.textContent = progress.complete ? "Готово" : "Отметить";
+  els.completeButton.classList.toggle("is-complete", Boolean(progress.complete));
+
+  els.transcriptLink.href = resolveAssetUrl(lesson.transcriptUrl) || "#";
+  els.srtLink.href = resolveAssetUrl(lesson.srtUrl) || "#";
+  const sourceUrl = lesson.youtubeUrl || lesson.externalVideoUrl || lesson.videoUrl;
+  els.sourceLink.href = resolveAssetUrl(sourceUrl) || "#";
+  setDisabledLink(els.transcriptLink, !lesson.transcriptUrl);
+  setDisabledLink(els.srtLink, !lesson.srtUrl);
+  setDisabledLink(els.sourceLink, !sourceUrl);
+
+  els.youtubeFrame.innerHTML = "";
+  if (lesson.sourceKind === "local-video" && lesson.videoUrl) {
+    els.youtubeFrame.hidden = true;
+    els.emptyState.hidden = true;
+    els.video.hidden = false;
+    const videoUrl = resolveAssetUrl(lesson.videoUrl);
+    if (!els.video.src.endsWith(videoUrl)) {
+      els.video.src = videoUrl;
+      els.video.currentTime = progress.time || 0;
+    }
+  } else if (lesson.youtubeUrl && youtubeEmbed(lesson.youtubeUrl)) {
+    els.video.hidden = true;
+    els.emptyState.hidden = true;
+    els.youtubeFrame.hidden = false;
+    els.youtubeFrame.innerHTML = `<iframe src="${youtubeEmbed(lesson.youtubeUrl)}" allowfullscreen loading="lazy"></iframe>`;
+  } else if (lesson.externalVideoUrl || lesson.sourceKind === "external-video") {
+    els.youtubeFrame.hidden = true;
+    loadExternalVideo(lesson, progress);
+  } else {
+    els.video.hidden = true;
+    els.youtubeFrame.hidden = true;
+    els.emptyState.hidden = false;
+    els.emptyState.textContent = "Видео не встроено в публичную сборку. Используй транскрипт ниже и кнопку Источник, если ссылка есть.";
+  }
+  renderComments(lesson);
+  renderTranscript(lesson);
+}
+
+function renderTranscript(lesson) {
+  const query = state.segmentQuery.trim().toLowerCase();
+  const segments = lesson.segments.filter((segment) => {
+    return !query || segment.text.toLowerCase().includes(query);
+  });
+  els.transcriptSegments.innerHTML = "";
+  if (!segments.length) {
+    const empty = document.createElement("p");
+    empty.textContent = lesson.segments.length ? "Фрагменты не найдены." : "Полная транскрибация хранится в исходном проекте. Смотреть урок можно через плеер выше.";
+    els.transcriptSegments.append(empty);
+    return;
+  }
+  segments.forEach((segment) => {
+    const item = document.createElement("div");
+    item.className = "segment";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = formatTime(segment.start);
+    button.addEventListener("click", () => {
+      if (!els.video.hidden) {
+        els.video.currentTime = segment.start;
+        els.video.play();
+      }
+    });
+    const text = document.createElement("p");
+    text.textContent = segment.text;
+    item.append(button, text);
+    els.transcriptSegments.append(item);
+  });
+}
+
+function renderComments(lesson) {
+  const comments = state.comments[lesson.id] || [];
+  els.commentCount.textContent = comments.length;
+  els.commentsList.innerHTML = "";
+  comments.forEach((comment) => {
+    const item = document.createElement("div");
+    item.className = "comment-item";
+    const time = document.createElement("time");
+    time.dateTime = comment.createdAt;
+    time.textContent = new Date(comment.createdAt).toLocaleString("ru-RU");
+    const text = document.createElement("div");
+    text.textContent = comment.text;
+    item.append(time, text);
+    els.commentsList.append(item);
+  });
+}
+
+function render() {
+  renderPhases();
+  renderLessonList();
+  renderActiveLesson();
+}
+
+els.systemTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    state.system = tab.dataset.system;
+    state.phase = "all";
+    state.activeId = null;
+    els.systemTabs.forEach((item) => item.classList.toggle("is-active", item === tab));
+    render();
+  });
+});
+
+els.searchInput.addEventListener("input", (event) => {
+  state.query = event.target.value;
+  state.activeId = null;
+  render();
+});
+
+els.segmentSearch.addEventListener("input", (event) => {
+  state.segmentQuery = event.target.value;
+  const lesson = activeLesson();
+  if (lesson) renderTranscript(lesson);
+});
+
+els.completeButton.addEventListener("click", () => {
+  const lesson = activeLesson();
+  if (!lesson) return;
+  const progress = state.progress[lesson.id] || {};
+  progress.complete = !progress.complete;
+  state.progress[lesson.id] = progress;
+  saveProgress();
+  render();
+});
+
+els.saveComment.addEventListener("click", () => {
+  const lesson = activeLesson();
+  const text = els.commentInput.value.trim();
+  if (!lesson || !text) return;
+  const comments = state.comments[lesson.id] || [];
+  comments.unshift({ text, createdAt: new Date().toISOString() });
+  state.comments[lesson.id] = comments;
+  els.commentInput.value = "";
+  saveComments();
+  renderComments(lesson);
+});
+
+els.video.addEventListener("timeupdate", () => {
+  const lesson = activeLesson();
+  if (!lesson) return;
+  const progress = state.progress[lesson.id] || {};
+  progress.time = Math.floor(els.video.currentTime);
+  state.progress[lesson.id] = progress;
+  saveProgress();
+});
+
+els.video.addEventListener("ended", () => {
+  const lesson = activeLesson();
+  if (!lesson) return;
+  const progress = state.progress[lesson.id] || {};
+  progress.complete = true;
+  state.progress[lesson.id] = progress;
+  saveProgress();
+  renderLessonList();
+});
+
+const embedded = document.querySelector("#embeddedLessons");
+const dataPromise = embedded
+  ? Promise.resolve(JSON.parse(embedded.textContent))
+  : fetch("/platform/data/lessons.json").then((response) => response.json());
+
+dataPromise.then((data) => {
+    state.data = data;
+    state.activeId = data.lessons.find((lesson) => lesson.system === "Квант")?.id || null;
+    render();
+  })
+  .catch((error) => {
+    document.body.innerHTML = `<main class="empty-state">Не удалось загрузить данные платформы: ${error.message}</main>`;
+  });
+
+</script>
+  </body>
+</html>
