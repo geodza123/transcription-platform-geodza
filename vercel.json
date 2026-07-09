@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/yadisk-video.js": {
+      "maxDuration": 60
+    }
+  }
+}
